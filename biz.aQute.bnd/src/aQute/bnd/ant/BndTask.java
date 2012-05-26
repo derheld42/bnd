@@ -96,7 +96,8 @@ public class BndTask extends BaseTask {
 	boolean			failok;
 	boolean			exceptions;
 	boolean			print;
-
+	boolean			genlaunchprop=false;
+	
 	// flags aiming to know how classpath & bnd descriptors were set
 	private boolean	classpathDirectlySet;
 	private Path	classpathReference;
@@ -134,10 +135,21 @@ public class BndTask extends BaseTask {
 			project.setTrace(trace);
 			project.setPedantic(pedantic);
 
+			project.setGenLaunchProp(genlaunchprop);
+			
 			for (Property prop : properties) {
 				project.setProperty(prop.getName(), prop.getValue());
 			}
-
+			
+			//[cs] process --runfile
+			for(File f : this.files) {
+				project.setDelayRunDependencies(true);
+				// setting RUNBUILDS to false makes it so the project itself
+				// isn't inclued in the runbundles automatically.
+				project.setProperty(Constants.RUNBUILDS, "false");
+				project.doIncludeFile(f, true, project.getProperties());
+			}
+			
 			project.action(command);
 
 			for (Project p : ws.getCurrentProjects())
@@ -424,5 +436,13 @@ public class BndTask extends BaseTask {
 		for (String fileName : path.list()) {
 			files.add(new File(fileName.replace('\\', '/')));
 		}
+	}
+
+	public boolean isGenLaunchProp() {
+		return genlaunchprop;
+	}
+
+	public void setGenLaunchProp(boolean genlaunchprop) {
+		this.genlaunchprop = genlaunchprop;
 	}
 }

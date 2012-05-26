@@ -24,9 +24,16 @@ public class ProjectLauncherImpl extends ProjectLauncher {
 		super(project);
 		project.trace("created a aQute launcher plugin");
 		this.project = project;
-		propertiesFile = File.createTempFile("launch", ".properties", project.getTarget());
-		project.trace(MessageFormat.format("launcher plugin using temp launch file {0}",
-				propertiesFile.getAbsolutePath()));
+		
+		//[cs]
+		if (project.isGenLaunchProp()) {
+			propertiesFile = new File(project.getBase() + "/launch.properties");
+			System.out.println("Writing launch.properties...");
+		} else {
+			propertiesFile = File.createTempFile("launch", ".properties", project.getTarget());
+			project.trace(MessageFormat.format("launcher plugin using temp launch file {0}",
+					propertiesFile.getAbsolutePath()));
+		}
 		addRunVM("-D" + LauncherConstants.LAUNCHER_PROPERTIES + "=\"" + propertiesFile.getAbsolutePath() + "\"");
 
 		if (project.getRunProperties().get("noframework") != null) {
@@ -61,7 +68,12 @@ public class ProjectLauncherImpl extends ProjectLauncher {
 	@Override
 	public int launch() throws Exception {
 		prepare();
-		return super.launch();
+		//[cs]
+		if (project.isGenLaunchProp()) {
+			return 0;
+		} else {
+			return super.launch();
+		}
 	}
 
 	@Override

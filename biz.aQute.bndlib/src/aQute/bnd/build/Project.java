@@ -58,7 +58,8 @@ public class Project extends Processor {
 	static List<Project>		trail					= new ArrayList<Project>();
 	boolean						delayRunDependencies	= false;
 	final ProjectMessages		msgs					= ReporterMessages.base(this, ProjectMessages.class);
-
+	boolean						genlaunchprop			= false;
+	
 	public Project(Workspace workspace, File projectDir, File buildFile) throws Exception {
 		super(workspace);
 		this.workspace = workspace;
@@ -1969,6 +1970,7 @@ public class Project extends Processor {
 	 */
 	public void setDelayRunDependencies(boolean x) {
 		delayRunDependencies = x;
+		this.runbundles.clear();
 	}
 
 	/**
@@ -2220,4 +2222,11 @@ public class Project extends Processor {
 		getInfo(b);
 	}
 
+	public boolean isGenLaunchProp() {
+		return genlaunchprop;
+	}
+
+	public void setGenLaunchProp(boolean genlaunchprop) {
+		this.genlaunchprop = genlaunchprop;
+	}
 }
