@@ -159,6 +159,11 @@
         </subant>
     </target>
 
+    <target name="release-no-build" depends="init">
+        <subant target="_release" inheritAll="false" buildpath="${project.dependson}">
+            <property name="donotrecurse" value="true" />
+        </subant>
+    </target>
 
     <!--
          CLEAN

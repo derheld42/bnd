@@ -31,6 +31,9 @@
 	<target name="dist" >
 		<ant dir="dist" target="mainRelease" />
 	</target>
+	<target name="dist2" >
+		<ant dir="dist" target="mainRelease-no-build" />
+	</target>
 
 	<target name="release">
 		<ant dir="biz.aQute.bnd" target="mainRelease" />

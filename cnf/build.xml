@@ -100,6 +100,14 @@
         </repoindex>
     </target>
 
+    <target name="mainRelease-no-build" depends="maininit,template.release-no-build">
+        <bindex repositoryfile="bundles/repository.xml" root="bundles" quiet="true">
+            <fileset dir="bundles" includes="**/*.jar" />
+        </bindex>
+        <repoindex out="${releaserepo}/index.xml" rooturl="${releaserepo}" name="bnd" pretty="true">
+            <fileset dir="bundles" includes="**/*.jar" excludes="**/*-latest.jar"/>
+        </repoindex>
+    </target>
 
     <!--
          CLEAN
@@ -217,4 +225,5 @@
             failOnError="false"
         />
     </target>
+
 </project>
