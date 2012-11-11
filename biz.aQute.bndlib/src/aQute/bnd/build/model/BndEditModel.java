@@ -4,6 +4,7 @@ import java.beans.*;
 import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.regex.*;
 
 import org.osgi.resource.*;
 
@@ -12,8 +13,10 @@ import aQute.bnd.build.model.clauses.*;
 import aQute.bnd.build.model.conversions.*;
 import aQute.bnd.header.*;
 import aQute.bnd.osgi.*;
+import aQute.bnd.osgi.resource.*;
 import aQute.bnd.properties.*;
 import aQute.bnd.version.*;
+import aQute.libg.glob.*;
 import aQute.libg.tuple.*;
 
 /**
@@ -591,12 +594,92 @@ public class BndEditModel {
 		doSetObject(aQute.bnd.osgi.Constants.BUILDPACKAGES, oldValue, paths, headerClauseListFormatter);
 	}
 
+	private List<String> getSubBundleNames() {
+		List<String> ret = new ArrayList<String>();
+		if (this.bndResource != null) {
+			List<String> subs = this.getSubBndFiles();
+			if (subs != null) {
+				for (String sub : subs) {
+					final Pattern p = Glob.toPattern(sub);
+					File[] files = this.bndResource.getParentFile().listFiles(new FilenameFilter() {
+						public boolean accept(File var0, String filename) {
+							if (filename.equals("bnd.bnd")) {
+								return false;
+							}
+							if (p.matcher(filename).matches())
+								return true;
+							return false;
+						}
+					});
+					for (File f : files) {
+						int i = f.getName().lastIndexOf(".bnd");
+						if (i != -1) {
+							String subname = f.getName().substring(0, i);
+							ret.add(subname);
+						}
+					}
+				}
+			}
+		}
+		return ret;
+	}
+	
+	private List<VersionedClause> buildSelfVersionedClaus() {
+		List<VersionedClause> ret = null;
+		if (this.isProjectFile() && (this.getBundleSymbolicName() != null || this.bndResource != null)) {
+
+			String name = this.getBundleSymbolicName();
+			if (name == null && this.bndResource != null) {
+				name = this.bndResource.getParentFile().getName();
+			}
+
+			List<String> subs = this.getSubBundleNames();
+			
+			if (subs != null && subs.size() > 0) {
+				ret = new ArrayList<VersionedClause>();
+				for (String subname : subs) {
+					// [cs] assumption that sub.bnd means sub bundle is
+					// "main bundle" + ".sub"
+					// TODO: all of this ignores a symbolic name that might be in the
+					// sub bundle.
+					Attrs a = new Attrs();
+					a.put("version", "latest");
+					ret.add(new VersionedClause(name + "." + subname, a));
+				}
+			} else {
+				ret = new ArrayList<VersionedClause>();
+				Attrs a = new Attrs();
+				a.put("version", "latest");
+				ret.add(new VersionedClause(name, a));
+			}
+		}
+		return ret;
+	}
+
 	public List<VersionedClause> getRunBundles() {
-		return doGetObject(aQute.bnd.osgi.Constants.RUNBUNDLES, clauseListConverter);
+		List<VersionedClause> ret = doGetObject(aQute.bnd.osgi.Constants.RUNBUNDLES, clauseListConverter);
+
+		// [cs]
+		List<VersionedClause> v = buildSelfVersionedClaus();
+		if (v != null) {
+			if (ret == null) {
+				ret = new ArrayList<VersionedClause>();
+			}
+			ret.addAll(v);
+		}
+
+		return ret;
 	}
 
 	public void setRunBundles(List< ? extends VersionedClause> paths) {
 		List<VersionedClause> oldValue = getRunBundles();
+
+		// [cs]
+		List<VersionedClause> v = buildSelfVersionedClaus();
+		if (v != null) {
+			paths.removeAll(v);
+		}
+
 		doSetObject(aQute.bnd.osgi.Constants.RUNBUNDLES, oldValue, paths, headerClauseListFormatter);
 	}
 
@@ -751,14 +834,67 @@ public class BndEditModel {
         doSetObject(aQute.bnd.osgi.Constants.RUNFW, oldValue, clause, newlineEscapeFormatter);
     }
 
-    public List<Requirement> getRunRequires() {
-    	return doGetObject(aQute.bnd.osgi.Constants.RUNREQUIRES, requirementListConverter);
-    }
+    //[cs] This whole method is very hacky since this sort of logic should be hidden into Project.
+    // However, in the interest of "getting the job done" until the bnd/bndtools folks can sort
+    // this out, I'm making these changes to make it work.
+	private List<Requirement> buildSelfRequirement() {
+		List<Requirement> ret = null;
+		if (this.isProjectFile() && (this.getBundleSymbolicName() != null || this.bndResource != null)) { // is
+
+			String name = this.getBundleSymbolicName();
+			if (name == null && this.bndResource != null) {
+				name = this.bndResource.getParentFile().getName();
+			}
+
+			List<String> subs = this.getSubBundleNames();
+			
+			if (subs != null && subs.size() > 0) {
+				ret = new ArrayList<Requirement>();
+				for (String subname : subs) {
+					// [cs] assumption that sub.bnd means sub bundle is
+					// "main bundle" + ".sub"
+					// TODO: all of this ignores a symbolic name that might be in the
+					// sub bundle.
+					CapReqBuilder builder = new CapReqBuilder("osgi.identity");
+					builder.addDirective("filter", "(osgi.identity=" + name + "." + subname + ")");
+					ret.add(builder.buildSyntheticRequirement());
+				}
+			} else {
+				ret = new ArrayList<Requirement>();
+				CapReqBuilder builder = new CapReqBuilder("osgi.identity");
+				builder.addDirective("filter", "(osgi.identity=" + name + ")");
+				ret.add(builder.buildSyntheticRequirement());
+			}
+		}
+		return ret;
+	}
     
-    public void setRunRequires(List<Requirement> requires) {
-    	List<Requirement> oldValue = getRunRequires();
-    	doSetObject(aQute.bnd.osgi.Constants.RUNREQUIRES, oldValue, requires, requirementListFormatter);
-    }
+	public List<Requirement> getRunRequires() {
+		List<Requirement> ret = doGetObject(aQute.bnd.osgi.Constants.RUNREQUIRES, requirementListConverter);
+
+		// [cs] If this is a project file, include self or own sub bundles.
+		List<Requirement> r = buildSelfRequirement();
+		if (r != null) {
+			if (ret == null) {
+				ret = new ArrayList<Requirement>();
+			}
+			ret.addAll(r);
+		}
+
+		return ret;
+	}
+    
+	public void setRunRequires(List<Requirement> requires) {
+		List<Requirement> oldValue = getRunRequires();
+
+		// [cs] remove us if project file
+		List<Requirement> r = buildSelfRequirement();
+		if (r != null) {
+			requires.removeAll(r);
+		}
+
+		doSetObject(aQute.bnd.osgi.Constants.RUNREQUIRES, oldValue, requires, requirementListFormatter);
+	}
 
 
 	private <R> R doGetObject(String name, Converter< ? extends R, ? super String> converter) {
