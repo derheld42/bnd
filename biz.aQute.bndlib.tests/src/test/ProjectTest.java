@@ -573,4 +573,11 @@ public class ProjectTest extends TestCase {
 		assertEquals(count, dependson.size());
 		return all;
 	}
+	
+	public static void testBndPropertiesMacro() throws Exception {
+		Workspace ws = new Workspace(new File("testresources/ws"));
+		Project p = ws.getProject("p7");
+		String string = p.getProperty("var", "");
+		assertEquals("something;version=latest", string);
+	}
 }
