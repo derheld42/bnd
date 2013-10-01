@@ -1,0 +1,4 @@
+-buildpath: junit.osgi;version=3.8,\
+	junit;version=4.10
+Private-Package: foo
+Test-Cases: foo.TestClass

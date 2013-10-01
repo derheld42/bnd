@@ -1,0 +1,11 @@
+-runfw: org.apache.felix.framework;version='[4,5)'
+-runee: JavaSE-1.6
+-runsystemcapabilities: ${native_capability}
+
+-resolve.effective: active
+-runbundles: biz.aQute.junit;version='[1.2.0,1.2.1)',\
+	issue727;version=latest,\
+	junit;version='[4.10.0,4.10.1)'
+-runrequires: osgi.identity;filter:='(osgi.identity=issue727)',\
+	osgi.identity;filter:='(&(osgi.identity=biz.aQute.junit)(version>=1.2.0))',\
+	osgi.identity;filter:='(&(osgi.identity=junit)(version>=4.10.0))'
