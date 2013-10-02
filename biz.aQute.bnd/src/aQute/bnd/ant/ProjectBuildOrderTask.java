@@ -14,7 +14,11 @@ public class ProjectBuildOrderTask extends BaseTask {
 
 	private String				separator			= ",";
 	private File				workspaceLocation;
+	private boolean fullpath = false;
 
+	private File	projectLocation = null;
+	private String	buildFile = Project.BNDFILE;
+	
 	@Override
 	public void execute() throws BuildException {
 		try {
@@ -28,20 +32,31 @@ public class ProjectBuildOrderTask extends BaseTask {
 			}
 
 			Collection<Project> projects;
-			try {
-				workspaceLocation = workspaceLocation.getCanonicalFile();
-				Workspace workspace = Workspace.getWorkspace(workspaceLocation);
-				projects = workspace.getBuildOrder();
-			}
-			catch (Exception e) {
-				throw new BuildException(e);
+			workspaceLocation = workspaceLocation.getCanonicalFile();
+			Workspace workspace = Workspace.getWorkspace(workspaceLocation);
+			
+			if (projectLocation == null) {
+				// all projects in workspace
+				try {
+					projects = workspace.getBuildOrder();
+				}
+				catch (Exception e) {
+					throw new BuildException(e);
+				}
+			} else {
+				Project p = new Project(workspace, projectLocation, new File(projectLocation, buildFile));
+				projects = p.getDependson();
 			}
 
 			StringBuilder sb = new StringBuilder();
 			String sep = "";
 			for (Project project : projects) {
 				sb.append(sep);
-				sb.append(project.getName());
+				if (fullpath) {
+					sb.append(project.getBase().getAbsolutePath());
+				} else {
+					sb.append(project.getName());
+				}
 				sep = separator;
 			}
 
@@ -58,5 +73,17 @@ public class ProjectBuildOrderTask extends BaseTask {
 
 	public void setWorkspaceLocation(File workspaceLocation) {
 		this.workspaceLocation = workspaceLocation;
+	}
+	
+	public void setFullPath(boolean fullpath) {
+		this.fullpath=fullpath;
+	}
+	
+	public void setProjectDir(File projectLocation) {
+		this.projectLocation = projectLocation;
+	}
+	
+	public void setBuildFile(String buildFile) {
+		this.buildFile = buildFile;
 	}
 }
