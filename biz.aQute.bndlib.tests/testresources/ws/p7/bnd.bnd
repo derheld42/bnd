@@ -1,3 +1,5 @@
 -runbundles: something;version=latest
 
 var: ${p-property;-runbundles}
+
+-runvm: -XX:+UnlockCommercialFeatures, -XX:+FlightRecorder, "-XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true"

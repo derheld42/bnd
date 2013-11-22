@@ -580,4 +580,15 @@ public class ProjectTest extends TestCase {
 		String string = p.getProperty("var", "");
 		assertEquals("something;version=latest", string);
 	}
+	
+	public static void testVmArgs() throws Exception {
+		Workspace ws = new Workspace(new File("testresources/ws"));
+		Project p = ws.getProject("p7");
+		Collection<String> c = p.getRunVM();
+		
+		String[] arr = c.toArray(new String[] {});
+		assertEquals("-XX:+UnlockCommercialFeatures", arr[0]);
+		assertEquals("-XX:+FlightRecorder", arr[1]);
+		assertEquals("-XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true", arr[2]);
+	}
 }
