@@ -1,0 +1,6 @@
+variable1: somethingsomething
+variable2: ${variable1} foo ${variable1}
+
+-runbundles: This is ${variable2}
+
+-runrequires: This is also ${variable2}

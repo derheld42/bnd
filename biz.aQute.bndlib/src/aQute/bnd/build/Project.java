@@ -682,15 +682,6 @@ public class Project extends Processor {
 	public String _p_bootclasspath(String args[]) throws Exception {
 		return list(args, getBootclasspath());
 	}
-	
-	public String _p_property(String args[]) throws Exception {
-		if (args.length != 2) {
-			throw new IllegalArgumentException("${" + args[0] + ";<variable>} has wrong arguments: "
-					+ Arrays.toString(args));
-		}
-		String prop = getProperties().getProperty(args[1], "");
-		return prop;
-	}
 
 	public String _p_output(String args[]) throws Exception {
 		if (args.length != 1)

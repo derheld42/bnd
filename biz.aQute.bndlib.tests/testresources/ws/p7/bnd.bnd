@@ -1,5 +1,5 @@
 -runbundles: something;version=latest
 
-var: ${p-property;-runbundles}
+var: ${raw;-runbundles;"unset"}
 
 -runvm: -XX:+UnlockCommercialFeatures, -XX:+FlightRecorder, "-XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true"

@@ -540,8 +540,8 @@ public class ProjectTest extends TestCase {
 	}
 
 	public static void testBuildAll() throws Exception {
-		assertTrue(testBuildAll("*", 15).check()); // there are 14 projects
-		assertTrue(testBuildAll("p*", 9).check()); // 7 begin with p, plus
+		assertTrue(testBuildAll("*", 16).check()); // there are 14 projects
+		assertTrue(testBuildAll("p*", 10).check()); // 7 begin with p, plus
 													// build-all
 		assertTrue(testBuildAll("!p*, *", 6).check()); // negation: 6 don't
 														// begin with p,
@@ -556,7 +556,7 @@ public class ProjectTest extends TestCase {
 																					// is
 																					// an
 																					// error
-		assertTrue(testBuildAll("p*, !*-*, *", 12).check()); // check that
+		assertTrue(testBuildAll("p*, !*-*, *", 13).check()); // check that
 																// negation
 																// works after
 																// some projects
@@ -579,6 +579,17 @@ public class ProjectTest extends TestCase {
 		Project p = ws.getProject("p7");
 		String string = p.getProperty("var", "");
 		assertEquals("something;version=latest", string);
+	}
+	
+	public static void testBndRawMacro() throws Exception {
+		Workspace ws = new Workspace(new File("testresources/ws"));
+		Project p = new Project(ws, new File("testresources/ws/p7"), new File("testresources/ws/p7/reuse.bndrun"));
+		
+		String string = p.getProperty("-runbundles", "");
+		assertEquals("This is somethingsomething foo somethingsomething", string);
+		
+		string = p.getProperty("-runrequires", "");
+		assertEquals("This is also somethingsomething foo somethingsomething", string);
 	}
 	
 	public static void testVmArgs() throws Exception {
