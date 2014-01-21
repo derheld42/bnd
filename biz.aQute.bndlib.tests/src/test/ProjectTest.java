@@ -589,7 +589,7 @@ public class ProjectTest extends TestCase {
 		assertEquals("This is somethingsomething foo somethingsomething", string);
 		
 		string = p.getProperty("-runrequires", "");
-		assertEquals("This is also somethingsomething foo somethingsomething", string);
+		assertEquals("osgi.identity;filter:='(osgi.identity=variable)',osgi.identity;filter:='(osgi.identity=b)',osgi.identity;filter:='(osgi.identity=c)'", string);
 	}
 	
 	public static void testVmArgs() throws Exception {
