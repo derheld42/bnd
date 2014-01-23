@@ -775,7 +775,9 @@ public class BndEditModel {
 
 	public List<Requirement> getRunRequiresProcessed() {
 		String prop = "";
-		if (changesToSave.containsKey(aQute.bnd.osgi.Constants.RUNREQUIRES)) {
+		if (objectProperties.containsKey(aQute.bnd.osgi.Constants.RUNREQUIRES)) {
+			prop = (String) objectProperties.get(aQute.bnd.osgi.Constants.RUNREQUIRES);
+		} else if (changesToSave.containsKey(aQute.bnd.osgi.Constants.RUNREQUIRES)) {
 			prop = changesToSave.get(aQute.bnd.osgi.Constants.RUNREQUIRES);
 		} else if (properties.containsKey(aQute.bnd.osgi.Constants.RUNREQUIRES)) {
 			prop = properties.getProperty(aQute.bnd.osgi.Constants.RUNREQUIRES);
@@ -789,15 +791,16 @@ public class BndEditModel {
 
 	public List<Requirement> getRunRequires() {
 		String prop = "";
-		if (changesToSave.containsKey(aQute.bnd.osgi.Constants.RUNREQUIRES)) {
+		if (objectProperties.containsKey(aQute.bnd.osgi.Constants.RUNREQUIRES)) {
+			prop = (String) objectProperties.get(aQute.bnd.osgi.Constants.RUNREQUIRES);
+		} else if (changesToSave.containsKey(aQute.bnd.osgi.Constants.RUNREQUIRES)) {
 			prop = changesToSave.get(aQute.bnd.osgi.Constants.RUNREQUIRES);
 		} else if (properties.containsKey(aQute.bnd.osgi.Constants.RUNREQUIRES)) {
 			prop = properties.getProperty(aQute.bnd.osgi.Constants.RUNREQUIRES);
 		}
-
 		return requirementListConverter.convert(prop);
 	}
-    
+	
 	public void setRunRequires(List<Requirement> requires) {
 		String oldValue = doGetObject(aQute.bnd.osgi.Constants.RUNREQUIRES, stringConverter);
 		String newValue = requirementListFormatter.convert(requires);

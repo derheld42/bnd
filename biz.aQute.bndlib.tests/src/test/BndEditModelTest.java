@@ -11,8 +11,10 @@ import org.osgi.resource.*;
 import aQute.bnd.build.*;
 import aQute.bnd.build.model.*;
 import aQute.bnd.osgi.resource.*;
+import aQute.bnd.properties.*;
 
 public class BndEditModelTest extends TestCase {
+	static CapReqBuilder	cp	= new CapReqBuilder(IdentityNamespace.IDENTITY_NAMESPACE);
 
 	public static void testVariableInRunRequirements() throws Exception {
 		Workspace ws = new Workspace(new File("testresources/ws"));
@@ -49,16 +51,22 @@ public class BndEditModelTest extends TestCase {
 		assertEquals("(osgi.identity=b)", r.get(0).toString());
 		assertEquals("(osgi.identity=variable)", r.get(1).toString());
 		assertEquals("(osgi.identity=variable2)", r.get(2).toString());
+
+		assertEquals(getReq("(osgi.identity=b)"), r.get(0));
+		assertEquals(getReq("(osgi.identity=variable)"), r.get(1));
+		assertEquals(getReq("(osgi.identity=variable2)"), r.get(2));
+
 		r = model.getRunRequires();
 		assertEquals(2, r.size());
 		assertEquals("(osgi.identity=b)", r.get(0).toString());
 		assertEquals("${var}", r.get(1).toString());
 
+		assertEquals(getReq("(osgi.identity=b)"), r.get(0));
+
 		// Test SET
 		rr = new LinkedList<Requirement>();
-		cp = new CapReqBuilder(IdentityNamespace.IDENTITY_NAMESPACE);
-		rr.add(cp.addDirective(Namespace.REQUIREMENT_FILTER_DIRECTIVE, "(osgi.identity=b)").buildSyntheticRequirement());
-		rr.add(cp.addDirective(Namespace.REQUIREMENT_FILTER_DIRECTIVE, "(osgi.identity=c)").buildSyntheticRequirement());
+		rr.add(getReq("(osgi.identity=b)"));
+		rr.add(getReq("(osgi.identity=c)"));
 		model.setRunRequires(rr);
 
 		// VERIFY
@@ -66,9 +74,40 @@ public class BndEditModelTest extends TestCase {
 		assertEquals(2, r.size());
 		assertEquals("(osgi.identity=b)", r.get(0).toString());
 		assertEquals("(osgi.identity=c)", r.get(1).toString());
+
+		assertEquals(getReq("(osgi.identity=b)"), r.get(0));
+		assertEquals(getReq("(osgi.identity=c)"), r.get(1));
+
 		r = model.getRunRequiresProcessed();
 		assertEquals(2, r.size());
 		assertEquals("(osgi.identity=b)", r.get(0).toString());
 		assertEquals("(osgi.identity=c)", r.get(1).toString());
+
+		assertEquals(getReq("(osgi.identity=b)"), r.get(0));
+		assertEquals(getReq("(osgi.identity=c)"), r.get(1));
+
+		// TEST Saving changes and those changes persist...
+		Document d = new Document("");
+		model.saveChangesTo(d);
+
+		r = model.getRunRequires();
+		assertEquals(2, r.size());
+		assertEquals("(osgi.identity=b)", r.get(0).toString());
+		assertEquals("(osgi.identity=c)", r.get(1).toString());
+
+		assertEquals(getReq("(osgi.identity=b)"), r.get(0));
+		assertEquals(getReq("(osgi.identity=c)"), r.get(1));
+
+		r = model.getRunRequiresProcessed();
+		assertEquals(2, r.size());
+		assertEquals("(osgi.identity=b)", r.get(0).toString());
+		assertEquals("(osgi.identity=c)", r.get(1).toString());
+
+		assertEquals(getReq("(osgi.identity=b)"), r.get(0));
+		assertEquals(getReq("(osgi.identity=c)"), r.get(1));
+	}
+
+	private static Requirement getReq(String n) {
+		return cp.addDirective(Namespace.REQUIREMENT_FILTER_DIRECTIVE, n).buildSyntheticRequirement();
 	}
 }

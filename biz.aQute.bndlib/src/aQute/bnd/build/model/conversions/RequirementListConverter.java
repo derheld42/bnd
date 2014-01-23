@@ -16,9 +16,9 @@ public class RequirementListConverter extends ClauseListConverter<Requirement> {
 				if (input == null)
 					return null;
 				String namespace = input.getFirst();
+				namespace = namespace.replaceAll("\\\\\n", "").trim();
 
 				if (namespace.contains("$")) {
-					namespace = namespace.replaceAll("\\\\\n", "").trim();
 					RequirementVariable v = new RequirementVariable(namespace);
 					return v;
 				} else {
