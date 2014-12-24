@@ -1,1 +1,2 @@
--include: bottom.bnd
+bottomfile: bottom.bnd
+-include: ${bottomfile}
